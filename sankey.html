@@ -1,179 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://unpkg.com/d3-sankey@0.9.1/dist/d3-sankey.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CDAI Treatment Outcomes – Sankey Diagrams</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .sankey { width: 1000px; height: 800px; }
-    .legend { margin: 20px 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #fafafa;
+      margin: 0;
+      padding: 40px 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    .subtitle {
+      font-size: 18px;
+      color: #7f8c8d;
+      margin-bottom: 40px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 24px;
+      margin: 20px 0;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 20px;
+      color: #2c3e50;
+    }
+    .card p {
+      color: #555;
+      line-height: 1.5;
+    }
+    .btn {
+      display: inline-block;
+      background: #3498db;
+      color: white;
+      text-decoration: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      margin-top: 12px;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #2980b9;
+    }
+    .btn.study {
+      background: #e74c3c;
+    }
+    .btn.study:hover {
+      background: #c0392b;
+    }
+    footer {
+      margin-top: 50px;
+      color: #95a5a6;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
-  <h1>Medical Patient Flow Sankey Diagram</h1>
-  <div class="legend">
-    <p>Analysis Approaches: <span style="color: #0066cc">Per Protocol</span> | <span style="color: #cc0000">Intention to Treat (Rescue Tx)</span></p>
-    <p>Outcomes: <span style="color: #4CAF50">Success</span> | <span style="color: #FF9800">Complications</span> | <span style="color: #F44336">Revision Surgery</span></p>
+  <div class="container">
+    <h1>CDAI Treatment Outcomes</h1>
+    <p class="subtitle">Interactive Sankey Diagrams Visualizing Clinical Pathways</p>
+
+    <div class="card">
+      <h2>🔬 Flows Colored by Study</h2>
+      <p>Each flow is colored according to the clinical study that reported the outcome. Useful for tracing evidence sources across treatment paths.</p>
+      <a href="sankey_study_colored.html" class="btn study">View Study-Colored Sankey</a>
+    </div>
+
+    <div class="card">
+      <h2>🎨 Nodes Colored by Category</h2>
+      <p>Nodes represent clinical states or interventions, each with a distinct color. Flows are neutral to emphasize node roles in the care pathway.</p>
+      <a href="sankey_node_colored.html" class="btn">View Node-Colored Sankey</a>
+    </div>
+
+    <footer>
+      <p>Published via GitHub Pages • Data aggregated from multiple clinical studies</p>
+    </footer>
   </div>
-  
-  <div class="sankey"></div>
-
-  <script>
-    // Create sample data based on your table structure
-    const data = {
-      nodes: [
-        { id: "Per Protocol" },
-        { id: "Intention to Treat (Rescue Tx)" },
-        { id: "Initial Tx (N1)" },
-        { id: "2nd phase Tx (N2)" },
-        { id: "Concomitant Tx" },
-        { id: "Dt Tx" },
-        { id: "Surgery" },
-        { id: "Abx" },
-        { id: "Success" },
-        { id: "Complications (Failure?)" },
-        { id: "Revision surgery" },
-        { id: "Non-Conserv Dt Tx" },
-        { id: "Recurrence" },
-        { id: "AE" },
-        { id: "ESS" },
-        { id: "Combined ESS" }
-      ],
-      links: [
-        // Per Protocol flow
-        { source: "Per Protocol", target: "Initial Tx (N1)", value: 150 },
-        { source: "Initial Tx (N1)", target: "2nd phase Tx (N2)", value: 130 },
-        { source: "2nd phase Tx (N2)", target: "Success", value: 85 },
-        { source: "2nd phase Tx (N2)", target: "Complications (Failure?)", value: 35 },
-        { source: "2nd phase Tx (N2)", target: "Revision surgery", value: 10 },
-        { source: "2nd phase Tx (N2)", target: "Recurrence", value: 5 },
-        
-        // Intention to Treat (Rescue Tx) flow
-        { source: "Intention to Treat (Rescue Tx)", target: "Initial Tx (N1)", value: 180 },
-        { source: "Initial Tx (N1)", target: "2nd phase Tx (N2)", value: 160 },
-        { source: "2nd phase Tx (N2)", target: "Success", value: 70 },
-        { source: "2nd phase Tx (N2)", target: "Complications (Failure?)", value: 60 },
-        { source: "2nd phase Tx (N2)", target: "Revision surgery", value: 20 },
-        { source: "2nd phase Tx (N2)", target: "Recurrence", value: 10 },
-        
-        // Specific treatment paths
-        { source: "2nd phase Tx (N2)", target: "ESS", value: 50 },
-        { source: "2nd phase Tx (N2)", target: "Combined ESS", value: 40 },
-        { source: "ESS", target: "Success", value: 35 },
-        { source: "ESS", target: "Complications (Failure?)", value: 15 },
-        { source: "Combined ESS", target: "Success", value: 25 },
-        { source: "Combined ESS", target: "Complications (Failure?)", value: 15 },
-        
-        // Additional pathways from the table
-        { source: "2nd phase Tx (N2)", target: "Non-Conserv Dt Tx", value: 15 },
-        { source: "2nd phase Tx (N2)", target: "AE", value: 10 }
-      ]
-    };
-
-    // Set up the SVG container
-    const width = 1000;
-    const height = 800;
-    
-    const svg = d3.select(".sankey")
-      .append("svg")
-      .attr("width", width)
-      .attr("height", height);
-    
-    // Create Sankey layout
-    const sankey = d3 sankey()
-      .nodeWidth(20)
-      .nodePadding(20)
-      .size([width, height - 200])
-      .nodeId(d => d.id)
-      .iterations(30);
-    
-    // Generate the layout
-    const { nodes, links } = sankey(data);
-    
-    // Add nodes
-    const node = svg.append("g")
-      .selectAll(".node")
-      .data(nodes)
-      .enter().append("g")
-      .attr("class", "node")
-      .attr("transform", d => `translate(${d.x0},${d.y0})`);
-    
-    node.append("rect")
-      .attr("width", d => d.x1 - d.x0)
-      .attr("height", d => d.y1 - d.y0)
-      .attr("fill", d => d.id === "Per Protocol" ? "#0066cc" : 
-                d.id === "Intention to Treat (Rescue Tx)" ? "#cc0000" : 
-                d.id === "Success" ? "#4CAF50" : 
-                d.id === "Complications (Failure?)" ? "#FF9800" : 
-                d.id === "Revision surgery" ? "#F44336" : 
-                d.id === "Non-Conserv Dt Tx" ? "#2196F3" : 
-                d.id === "Recurrence" ? "#9C27B0" : 
-                d.id === "AE" ? "#FF5722" : 
-                "#607D8B")
-      .attr("stroke", "black")
-      .attr("stroke-width", 0.5);
-    
-    node.append("text")
-      .attr("x", d => d.x0 + 10)
-      .attr("y", d => d.y0 + 15)
-      .attr("text-anchor", "left")
-      .attr("font-size", "10px")
-      .text(d => d.id)
-      .attr("fill", "white");
-    
-    // Add links
-    const link = svg.append("g")
-      .selectAll(".link")
-      .data(links)
-      .enter().append("g")
-      .attr("class", "link")
-      .attr("transform", d => `translate(${d.x0},${d.y0})`);
-    
-    link.append("path")
-      .attr("d", d => `M0,0L${d.x1 - d.x0},0L${d.x1 - d.x0},${d.y1 - d.y0}}L0,${d.y1 - d.y0}}Z`)
-      .attr("fill", d => {
-        if (d.source.id === "Per Protocol") return "#0066cc";
-        if (d.source.id === "Intention to Treat (Rescue Tx)") return "#cc0000";
-        if (d.target.id === "Success") return "#4CAF50";
-        if (d.target.id === "Complications (Failure?)") return "#FF9800";
-        if (d.target.id === "Revision surgery") return "#F44336";
-        return "#607D8B";
-      })
-      .attr("stroke", "none")
-      .attr("opacity", 0.8);
-    
-    // Add value labels
-    link.append("text")
-      .attr("x", d => d.x1 - d.x0)
-      .attr("y", d => (d.y1 - d.y0)/2)
-      .attr("text-anchor", "end")
-      .attr("font-size", "10px")
-      .text(d => d.value);
-    
-    // Add legend
-    const legend = d3.select(".legend")
-      .append("div")
-      .style("display", "flex")
-      .style("flex-wrap", "wrap")
-      .style("margin", "10px 0");
-    
-    const legendItems = [
-      { label: "Per Protocol", color: "#0066cc" },
-      { label: "Rescue Tx", color: "#cc0000" },
-      { label: "Success", color: "#4CAF50" },
-      { label: "Complications", color: "#FF9800" },
-      { label: "Revision Surgery", color: "#F44336" },
-      { label: "Non-Conserv Dt Tx", color: "#2196F3" },
-      { label: "Recurrence", color: "#9C27B0" },
-      { label: "AE", color: "#FF5722" }
-    ];
-    
-    legend.selectAll("div")
-      .data(legendItems)
-      .enter().append("div")
-      .style("margin", "5px")
-      .html(d => `<span style="display:inline-block; width:20px; height:10px; background-color:${d.color};"></span> ${d.label}`);
-  </script>
 </body>
 </html>
